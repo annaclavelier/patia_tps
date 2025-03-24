@@ -12,7 +12,7 @@
 		;;; la position est vide
 		(empty ?p - position)
         ;;; il y a un mur à la position
-        (wall ?p - position)
+        ;;;(wall ?p - position)
         ;;; le sokoban est à la position p
         (at ?p - position)
 		;;; la case est une case de stockage
@@ -25,34 +25,35 @@
 		(box_not_on_storage ?b -box)
 
 	)
+	
 
 	(:action pousser_caisse_not_on_storage
-		:parameters (?b -box ?p - position ?p2 - position ?s - position)
-		:precondition (and (empty ?p) (isNotStorage ?p) (adjacent ?s ?p2) (adjacent ?p ?p2) (at ?s) (box_at ?b ?p2) )
+		:parameters (?b -box ?position_arrivee - position ?position_depart - position ?s - position)
+		:precondition (and (empty ?position_arrivee) (isNotStorage ?position_arrivee) (adjacent ?s ?position_depart) (adjacent ?position_arrivee ?position_depart) (at ?s) (box_at ?b ?position_depart) )
 		:effect (and
-			(not (empty ?p))
-			(not (box_at ?b ?p2))
+			(not (empty ?position_arrivee))
+			(not (box_at ?b ?position_depart))
 			(box_not_on_storage ?b)
 			(not(box_on_storage ?b))
-			(empty ?p2)
-			(box_at ?b ?p)
+			(empty ?s)
+			(box_at ?b ?position_arrivee)
 			(not(at ?s))
-			(at ?p2) 
+			(at ?position_depart) 
 		)
 	)
 	
 	(:action pousser_caisse_on_storage
-		:parameters (?b -box ?p - position ?p2 - position ?s - position)
-		:precondition (and (empty ?p) (isStorage ?p) (adjacent ?s ?p2) (adjacent ?p ?p2) (at ?s) (box_at ?b ?p2) )
+		:parameters (?b -box ?position_arrivee - position ?position_depart - position ?s - position)
+		:precondition (and (empty ?position_arrivee) (isStorage ?position_arrivee) (adjacent ?s ?position_depart) (adjacent ?position_depart ?position_arrivee) (at ?s) (box_at ?b ?position_depart) )
 		:effect (and
-			(not (empty ?p))
-			(not (box_at ?b ?p2))
+			(not (empty ?position_arrivee))
+			(not (box_at ?b ?position_depart))
 			(not(box_not_on_storage ?b))
 			(box_on_storage ?b)
-			(empty ?p2)
-			(box_at ?b ?p)
+			(empty ?s)
+			(box_at ?b ?position_arrivee)
 			(not(at ?s))
-			(at ?p2) 
+			(at ?position_depart) 
 		)
 	)
 	(:action deplacement
