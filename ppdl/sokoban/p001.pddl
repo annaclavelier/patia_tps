@@ -9,9 +9,9 @@ box_0_1 - box
 )
 (:init
 (at pos_0_0)
-(not (empty pos_0_0))
+;;(not (empty pos_0_0))
 (isNotStorage pos_0_0)
-(not (empty pos_0_1))
+;;(not (empty pos_0_1))
 (isStorage pos_0_1)
 (box_on_storage box_0_1)
 (box_at box_0_1 pos_0_1)
