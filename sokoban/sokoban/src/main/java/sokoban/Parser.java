@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Parser {
     final static String DOMAIN = "sokoban";
 
+    /* 
     public static void main(String[] args) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -36,7 +37,7 @@ public class Parser {
             StringBuilder init = new StringBuilder();
             StringBuilder goal = new StringBuilder();
             StringBuilder objects = new StringBuilder();
-            Set<String> adjacences = new HashSet<>();
+            HashSet<String> positions = new HashSet<>();
 
             int width = lignes[0].length();
             int height = lignes.length;
@@ -46,27 +47,13 @@ public class Parser {
                 String ligne = lignes[i];
                 for (int j = 0; j < width; j++) {
                     char c = ligne.charAt(i);
-                    transformAndBuildPDDL(c, i, j, init, goal, objects);
-
-                    // Gestion des adjacences (évite les doublons)
-                    if (i < height - 1) {
-                        adjacences.add(String.format("(adjacent pos_%d_%d pos_%d_%d)", i, j, i + 1, j));
-                        adjacences.add(String.format("(adjacent pos_%d_%d pos_%d_%d)", i + 1, j, i, j));
-
-                    }
-
-                    if (j < width - 1) {
-                        adjacences.add(String.format("(adjacent pos_%d_%d pos_%d_%d)", i, j, i, j + 1));
-                        adjacences.add(String.format("(adjacent pos_%d_%d pos_%d_%d)", i, j + 1, i, j));
-
-                    }
+                    transformAndBuildPDDL(c, i, j, init, goal, objects, positions);
                 }
             }
 
-            // Ajout des adjacences aux conditions initiales
-            for (String adj : adjacences) {
-                init.append(adj).append("\n");
-            }
+            // Ajout des adjacences
+            StringBuilder adjacences = generateAdjacences(positions);
+            init.append(adjacences);
 
             System.out.println("Test Input : \n" + testIn);
             createPDDLFile("p001", init, goal, width, height, objects);
@@ -76,18 +63,13 @@ public class Parser {
             System.err.println("Erreur lors de la lecture du fichier JSON !");
         }
     }
+    */
 
-    public static void createPDDLFile(String filename, StringBuilder init, StringBuilder goal, int width, int height,
+    public static void createPDDLFile(String filename, StringBuilder init, StringBuilder goal,
             StringBuilder objects) {
-        String pddlContent = String.format("(define (problem %s)\n(:domain %s)\n", filename, Parser.DOMAIN) +
+        String pddlContent = String.format("(define (problem %s)%n(:domain %s)%n", filename, Parser.DOMAIN) +
                 "(:objects\n";
 
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                pddlContent += String.format("pos_%d_%d - position\n", i, j);
-                System.out.println(pddlContent.toString());
-            }
-        }
 
         pddlContent += objects.toString();
 
@@ -106,55 +88,59 @@ public class Parser {
         }
     }
 
-    public static void transformAndBuildPDDL(char element, int col, int lig, StringBuilder init, StringBuilder goal,
-            StringBuilder objects) {
-        String position = String.format("pos_%d_%d", col, lig);
+    public static void transformAndBuildPDDL(char element, int x, int y, StringBuilder init, StringBuilder goal,
+            StringBuilder objects, Set<String> positions) {
+        String position = String.format("pos_%d_%d", x, y);
 
         switch (element) {
             // Mur
             case '#':
-                // à suppr ?
-                // init.append("(wall ").append(position).append(")\n");
-                init.append("(not (empty ").append(position).append("))\n");
-                init.append("(isNotStorage ").append(position).append(")\n");
                 break;
             // Boite
             case '$':
-                objects.append(String.format("box_%d_%d - box\n", col, lig)); // Ajouter la boîte comme objet
-                init.append(String.format("(box_at box_%d_%d %s)\n", col, lig, position));
-                init.append("(not (empty ").append(position).append("))\n");
+                objects.append(String.format("box_%d_%d - box%n", x, y)); // Ajouter la boîte comme objet
+                objects.append(position + " - position\n");
+                positions.add(position);
+                init.append(String.format("(box_at box_%d_%d %s)%n", x, y, position));
                 init.append("(isNotStorage ").append(position).append(")\n");
-                init.append(String.format("(box_not_on_storage box_%d_%d)\n", col, lig));
-                goal.append(String.format("(box_on_storage box_%d_%d)\n", col, lig));
+                init.append(String.format("(box_not_on_storage box_%d_%d)%n", x, y));
+                goal.append(String.format("(box_on_storage box_%d_%d)%n", x, y));
                 break;
             // Destination
             case '.':
-                init.append("(isStorage ").append(position).append(")\n");
+                objects.append(position + " - position\n");
+                positions.add(position);
                 init.append("(empty ").append(position).append(")\n");
-                // goal.append("(box_at ?b ").append(position).append(")\n");
+                init.append("(isStorage ").append(position).append(")\n");
                 break;
             // Boite sur une destination
             case '*':
-                objects.append(String.format("box_%d_%d - box\n", col, lig));
-                init.append(String.format("(box_at box_%d_%d %s)\n", col, lig, position));
+                objects.append(position + " - position\n");
+                positions.add(position);
+                objects.append(String.format("box_%d_%d - box%n", x, y));
+                init.append(String.format("(box_at box_%d_%d %s)%n", x, y, position));
                 init.append("(isStorage ").append(position).append(")\n");
-                init.append(String.format("(box_on_storage box_%d_%d)\n", col, lig));
-                init.append("(not (empty ").append(position).append("))\n");
-                goal.append(String.format("(box_on_storage box_%d_%d)\n", col, lig));
-
+                init.append(String.format("(box_on_storage box_%d_%d)%n", x, y));
+                goal.append(String.format("(box_on_storage box_%d_%d)%n", x, y));
                 break;
             // Garde mario
             case '@':
+                objects.append(position + " - position\n");
+                positions.add(position);
                 init.append("(at ").append(position).append(")\n");
                 init.append("(isNotStorage ").append(position).append(")\n");
                 break;
             // Garde sur une place de stockage
             case '+':
+                objects.append(position + " - position\n");
+                positions.add(position);
                 init.append("(at ").append(position).append(")\n");
                 init.append("(isStorage ").append(position).append(")\n");
                 break;
             // Sol
             case ' ':
+                objects.append(position + " - position\n");
+                positions.add(position);
                 init.append("(empty ").append(position).append(")\n");
                 init.append("(isNotStorage ").append(position).append(")\n");
                 break;
@@ -165,7 +151,7 @@ public class Parser {
     }
 
     public static void createPDDLFile(String filename) {
-        String pddlContent = String.format("(define (problem %s)\n (:domain %s)\n)", filename, DOMAIN);
+        String pddlContent = String.format("(define (problem %s)%n (:domain %s)%n)", filename, DOMAIN);
 
         // Écriture dans le fichier
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename + ".pddl"))) {
@@ -174,7 +160,6 @@ public class Parser {
             e.printStackTrace();
         }
     }
-
 
     public static StringBuilder generateAdjacences(Set<String> positions) {
         StringBuilder adjacences = new StringBuilder();
@@ -194,21 +179,16 @@ public class Parser {
 
             // Ajouter les relations si les positions existent
             if (positions.contains(posRight)) {
-                System.out.println("OH");
                 adjacences.append(String.format("(adjacent %s %s)%n", pos, posRight));
-                adjacences.append(String.format("(adjacent %s %s)%n", posRight, pos));
             }
             if (positions.contains(posDown)) {
                 adjacences.append(String.format("(adjacent %s %s)%n", pos, posDown));
-                adjacences.append(String.format("(adjacent %s %s)%n", posDown, pos));
             }
             if (positions.contains(posLeft)) {
                 adjacences.append(String.format("(adjacent %s %s)%n", pos, posLeft));
-                adjacences.append(String.format("(adjacent %s %s)%n", posLeft, pos));
             }
             if (positions.contains(posUp)) {
                 adjacences.append(String.format("(adjacent %s %s)%n", pos, posUp));
-                adjacences.append(String.format("(adjacent %s %s)%n", posUp, pos));
             }
         }
         return adjacences;

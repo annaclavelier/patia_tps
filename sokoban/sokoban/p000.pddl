@@ -1,4 +1,4 @@
-(define (problem p001)
+(define (problem p000)
 (:domain sokoban)
 (:objects
 pos_1_1 - position
@@ -15,8 +15,8 @@ pos_3_1 - position
 (empty pos_3_1)
 (isStorage pos_3_1)
 (adjacent pos_1_1 pos_2_1)
-(adjacent pos_2_1 pos_1_1)
 (adjacent pos_2_1 pos_3_1)
+(adjacent pos_2_1 pos_1_1)
 (adjacent pos_3_1 pos_2_1)
 )
 (:goal (and
