@@ -7,8 +7,6 @@
 	(:predicates
 		;;; la case x est à la position p 
 		(box_at ?b - box ?p - position)
-		;;: la position p est adjacente à p2
-		(adjacent ?p - position ?p2 - position)
 		;;; la position est vide
 		(empty ?p - position)
 		;;; le sokoban est à la position p
@@ -21,12 +19,17 @@
 		(box_on_storage ?b - box)
 		;;; la boite n'est pas sur une case de stockage
 		(box_not_on_storage ?b -box)
+		;; les positions p et p2 sont adjacentes en ligne
+		(ligne ?p - position ?p2 - position)
+		;; les positions p et p2 sont adjacentes en colonne
+		(colonne ?p - position ?p2 - position)
 
 	)
 
-	(:action pousser_caisse_not_on_storage
+	;; TODO : vérifier que s et arrivee sont différentes
+	(:action pousser_caisse_not_on_storage_ligne
 		:parameters (?b -box ?position_arrivee - position ?position_depart - position ?s - position)
-		:precondition (and (empty ?position_arrivee) (isNotStorage ?position_arrivee) (adjacent ?s ?position_depart) (adjacent ?position_arrivee ?position_depart) (at ?s) (box_at ?b ?position_depart))
+		:precondition (and (empty ?position_arrivee) (isNotStorage ?position_arrivee) (ligne ?s ?position_depart) (ligne ?position_arrivee ?position_depart) (at ?s) (box_at ?b ?position_depart))
 		:effect (and
 			(not (empty ?position_arrivee))
 			(not (box_at ?b ?position_depart))
@@ -39,9 +42,26 @@
 		)
 	)
 
-	(:action pousser_caisse_on_storage
+	;; TODO : vérifier que s et arrivee sont différentes
+
+	(:action pousser_caisse_not_on_storage_colonne
 		:parameters (?b -box ?position_arrivee - position ?position_depart - position ?s - position)
-		:precondition (and (empty ?position_arrivee) (isStorage ?position_arrivee) (adjacent ?s ?position_depart) (adjacent ?position_depart ?position_arrivee) (at ?s) (box_at ?b ?position_depart))
+		:precondition (and (empty ?position_arrivee) (isNotStorage ?position_arrivee) (colonne ?s ?position_depart) (colonne ?position_arrivee ?position_depart) (at ?s) (box_at ?b ?position_depart))
+		:effect (and
+			(not (empty ?position_arrivee))
+			(not (box_at ?b ?position_depart))
+			(box_not_on_storage ?b)
+			(not(box_on_storage ?b))
+			(empty ?s)
+			(box_at ?b ?position_arrivee)
+			(not(at ?s))
+			(at ?position_depart)
+		)
+	)
+
+	(:action pousser_caisse_on_storage_ligne
+		:parameters (?b -box ?position_arrivee - position ?position_depart - position ?s - position)
+		:precondition (and (empty ?position_arrivee) (isStorage ?position_arrivee) (ligne ?s ?position_depart) (ligne ?position_depart ?position_arrivee) (at ?s) (box_at ?b ?position_depart))
 		:effect (and
 			(not (empty ?position_arrivee))
 			(not (box_at ?b ?position_depart))
@@ -53,10 +73,25 @@
 			(at ?position_depart)
 		)
 	)
-	(:action deplacement
+
+	(:action pousser_caisse_on_storage_colonne
+		:parameters (?b -box ?position_arrivee - position ?position_depart - position ?s - position)
+		:precondition (and (empty ?position_arrivee) (isStorage ?position_arrivee) (colonne ?s ?position_depart) (colonne ?position_depart ?position_arrivee) (at ?s) (box_at ?b ?position_depart))
+		:effect (and
+			(not (empty ?position_arrivee))
+			(not (box_at ?b ?position_depart))
+			(not(box_not_on_storage ?b))
+			(box_on_storage ?b)
+			(empty ?s)
+			(box_at ?b ?position_arrivee)
+			(not(at ?s))
+			(at ?position_depart)
+		)
+	)
+	(:action deplacement_ligne
 		;;; s = position du sokoban, p = position cible
 		:parameters (?s - position ?p - position)
-		:precondition (and (at ?s) (empty ?p) (adjacent ?s ?p))
+		:precondition (and (at ?s) (empty ?p) (ligne ?s ?p))
 		:effect (and
 			(not (at ?s))
 			(at ?p)
@@ -64,9 +99,15 @@
 			(empty ?s)
 		)
 	)
-	(:action verifier_etat
-		:parameters (?b - box ?p - position)
-		:precondition (and (box_at ?b ?p) (isStorage ?p))
-		:effect (and(box_on_storage ?b))
+	(:action deplacement_colonne
+		;;; s = position du sokoban, p = position cible
+		:parameters (?s - position ?p - position)
+		:precondition (and (at ?s) (empty ?p) (colonne ?s ?p))
+		:effect (and
+			(not (at ?s))
+			(at ?p)
+			(not (empty ?p))
+			(empty ?s)
+		)
 	)
 )
