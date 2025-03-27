@@ -5,9 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -175,5 +173,44 @@ public class Parser {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+
+    public static StringBuilder generateAdjacences(Set<String> positions) {
+        StringBuilder adjacences = new StringBuilder();
+
+        for (String pos : positions) {
+            String[] coords = pos.split("_");
+            int x = Integer.parseInt(coords[1]);
+            int y = Integer.parseInt(coords[2]);
+            System.out.println("x:" + x + ", y:" + y + "\n");
+
+            // Vérifier les voisins possibles
+            String posRight = String.format("pos_%d_%d", x + 1, y);
+            String posDown = String.format("pos_%d_%d", x, y + 1);
+            String posLeft = String.format("pos_%d_%d", x - 1, y);
+            String posUp = String.format("pos_%d_%d", x, y - 1);
+            System.out.println(posRight + " " + posDown + " " + posLeft + " " + posUp);
+
+            // Ajouter les relations si les positions existent
+            if (positions.contains(posRight)) {
+                System.out.println("OH");
+                adjacences.append(String.format("(adjacent %s %s)%n", pos, posRight));
+                adjacences.append(String.format("(adjacent %s %s)%n", posRight, pos));
+            }
+            if (positions.contains(posDown)) {
+                adjacences.append(String.format("(adjacent %s %s)%n", pos, posDown));
+                adjacences.append(String.format("(adjacent %s %s)%n", posDown, pos));
+            }
+            if (positions.contains(posLeft)) {
+                adjacences.append(String.format("(adjacent %s %s)%n", pos, posLeft));
+                adjacences.append(String.format("(adjacent %s %s)%n", posLeft, pos));
+            }
+            if (positions.contains(posUp)) {
+                adjacences.append(String.format("(adjacent %s %s)%n", pos, posUp));
+                adjacences.append(String.format("(adjacent %s %s)%n", posUp, pos));
+            }
+        }
+        return adjacences;
     }
 }
