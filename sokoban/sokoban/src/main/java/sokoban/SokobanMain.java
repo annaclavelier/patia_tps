@@ -65,6 +65,7 @@ public class SokobanMain {
          
         SoloGameRunner gameRunner = new SoloGameRunner();
         gameRunner.setAgent(Agent.class);
+        //gameRunner.setAgent("DUU");
         /* charger l'espace de jeu */
         gameRunner.setTestCase(testName);
 
