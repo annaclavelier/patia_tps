@@ -1,73 +1,17 @@
 package sokoban;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class Parser {
+public class ParserJson {
     final static String DOMAIN = "sokoban";
-
-    /* 
-    public static void main(String[] args) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            File jsonFile = Paths.get(System.getProperty("user.dir"), "sokoban", "sokoban", "config", "test0.json")
-                    .toFile();
-            if (!jsonFile.exists()) {
-                System.err.println("Erreur : Le fichier JSON n'existe pas !");
-                return;
-            }
-
-            JsonNode rootNode = objectMapper.readTree(jsonFile);
-            String testIn = rootNode.path("testIn").asText();
-            if (testIn.isEmpty()) {
-                System.err.println("Erreur : 'testIn' est vide dans le fichier JSON !");
-                return;
-            }
-
-            String[] lignes = testIn.split("\n");
-
-            StringBuilder init = new StringBuilder();
-            StringBuilder goal = new StringBuilder();
-            StringBuilder objects = new StringBuilder();
-            HashSet<String> positions = new HashSet<>();
-
-            int width = lignes[0].length();
-            int height = lignes.length;
-            System.out.println("width : " + width);
-            System.out.println("height : " + height);
-            for (int i = 0; i < height; i++) {
-                String ligne = lignes[i];
-                for (int j = 0; j < width; j++) {
-                    char c = ligne.charAt(i);
-                    transformAndBuildPDDL(c, i, j, init, goal, objects, positions);
-                }
-            }
-
-            // Ajout des adjacences
-            StringBuilder adjacences = generateAdjacences(positions);
-            init.append(adjacences);
-
-            System.out.println("Test Input : \n" + testIn);
-            createPDDLFile("p001", init, goal, width, height, objects);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.err.println("Erreur lors de la lecture du fichier JSON !");
-        }
-    }
-    */
 
     public static void createPDDLFile(String filename, StringBuilder init, StringBuilder goal,
             StringBuilder objects) {
-        String pddlContent = String.format("(define (problem %s)%n(:domain %s)%n", filename, Parser.DOMAIN) +
+        String pddlContent = String.format("(define (problem %s)%n(:domain %s)%n", filename, ParserJson.DOMAIN) +
                 "(:objects\n";
 
 

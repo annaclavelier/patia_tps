@@ -47,16 +47,16 @@ public class SokobanMain {
                 for (int x = 0; x < ligne.length(); x++) {
 
                     char c = ligne.charAt(x);
-                    Parser.transformAndBuildPDDL(c, x, y, init, goal, objects, positions);
+                    ParserJson.transformAndBuildPDDL(c, x, y, init, goal, objects, positions);
                 }
             }
 
             // Ajout des adjacences
-            StringBuilder adjacences = Parser.generateAdjacences(positions);
+            StringBuilder adjacences = ParserJson.generateAdjacences(positions);
             init.append(adjacences);
        
             // create file
-            Parser.createPDDLFile(pddlFileName, init, goal,objects);
+            ParserJson.createPDDLFile(pddlFileName, init, goal,objects);
 
         } catch (IOException e) {
             e.printStackTrace();
