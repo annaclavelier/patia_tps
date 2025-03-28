@@ -179,16 +179,16 @@ public class Parser {
 
             // Ajouter les relations si les positions existent
             if (positions.contains(posRight)) {
-                adjacences.append(String.format("(adjacent %s %s)%n", pos, posRight));
+                adjacences.append(String.format("(ligne %s %s)%n", pos, posRight));
             }
             if (positions.contains(posDown)) {
-                adjacences.append(String.format("(adjacent %s %s)%n", pos, posDown));
+                adjacences.append(String.format("(colonne %s %s)%n", pos, posDown));
             }
             if (positions.contains(posLeft)) {
-                adjacences.append(String.format("(adjacent %s %s)%n", pos, posLeft));
+                adjacences.append(String.format("(ligne %s %s)%n", pos, posLeft));
             }
             if (positions.contains(posUp)) {
-                adjacences.append(String.format("(adjacent %s %s)%n", pos, posUp));
+                adjacences.append(String.format("(colonne %s %s)%n", pos, posUp));
             }
         }
         return adjacences;
