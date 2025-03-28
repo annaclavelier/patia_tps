@@ -17,4 +17,4 @@
           (at ball2 rooma)
           )
    (:goal (and
-               (at ball2 roomb) )))
+               (at ball2 roomb) (at ball1 roomb))))
