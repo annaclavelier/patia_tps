@@ -1,6 +1,0 @@
-
-0: (                                    deplacement_ligne pos_0_2 pos_1_2) [0]
-1: (pousser_caisse_not_on_storage_colonne box_1_1 pos_1_0 pos_1_1 pos_1_2) [0]
-2: (                                    deplacement_ligne pos_1_1 pos_0_1) [0]
-3: (                                  deplacement_colonne pos_0_1 pos_0_0) [0]
-4: (      pousser_caisse_on_storage_ligne box_1_1 pos_2_0 pos_1_0 pos_0_0) [0]
