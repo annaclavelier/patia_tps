@@ -1,35 +1,19 @@
 package sokoban;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ParserPlan {
-    public static void main(String[] args) {
-        String planFile = "plan.txt";  // Nom du fichier contenant le plan PDDL
-        String sequence = parsePlan(planFile);
-        System.out.println("Converted Sequence: " + sequence);
-    }
+    public static String parsePlan(String plan) {
+        StringBuffer sequence = new StringBuffer();
 
-    public static String parsePlan(String fileName) {
-        StringBuilder sequence = new StringBuilder();
-        File file = new File(fileName);
-
-        if (!file.exists()) {
-            System.err.println("Error: File not found - " + file.getAbsolutePath());
-            return "";
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
+            String[] lines = plan.split("\n");
             // Pattern pour capturer les actions
             Pattern simpleMovePattern = Pattern.compile("\\(\\s*(deplacement_(ligne|colonne))\\s+(\\S+)\\s+(\\S+)\\s*\\)");
             Pattern pushMovePattern = Pattern.compile("\\(\\s*(pousser_caisse_\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)\\s*\\)");
 
-            while ((line = reader.readLine()) != null) {
+            for(int i =0; i< lines.length; i++){
+                String line = lines[i];
                 Matcher simpleMoveMatcher = simpleMovePattern.matcher(line);
                 Matcher pushMoveMatcher = pushMovePattern.matcher(line);
 
@@ -55,11 +39,6 @@ public class ParserPlan {
                     }
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error reading the file: " + file.getAbsolutePath());
-            e.printStackTrace();
-        }
-
         return sequence.toString();
     }
 

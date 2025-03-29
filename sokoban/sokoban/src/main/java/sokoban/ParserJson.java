@@ -24,9 +24,9 @@ public class ParserJson {
         pddlContent += ")))";
 
         // Écriture dans le fichier
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename + ".pddl"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             writer.write(pddlContent);
-            System.out.println("Fichier PDDL généré : " + filename + ".pddl");
+            //System.out.println("Fichier PDDL généré : " + filename);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -112,14 +112,14 @@ public class ParserJson {
             String[] coords = pos.split("_");
             int x = Integer.parseInt(coords[1]);
             int y = Integer.parseInt(coords[2]);
-            System.out.println("x:" + x + ", y:" + y + "\n");
+           // System.out.println("x:" + x + ", y:" + y + "\n");
 
             // Vérifier les voisins possibles
             String posRight = String.format("pos_%d_%d", x + 1, y);
             String posDown = String.format("pos_%d_%d", x, y + 1);
             String posLeft = String.format("pos_%d_%d", x - 1, y);
             String posUp = String.format("pos_%d_%d", x, y - 1);
-            System.out.println(posRight + " " + posDown + " " + posLeft + " " + posUp);
+            //System.out.println(posRight + " " + posDown + " " + posLeft + " " + posUp);
 
             // Ajouter les relations si les positions existent
             if (positions.contains(posRight)) {

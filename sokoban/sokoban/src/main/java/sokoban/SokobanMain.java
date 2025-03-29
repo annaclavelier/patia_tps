@@ -1,7 +1,6 @@
 package sokoban;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.HashSet;
 
@@ -9,18 +8,20 @@ import com.codingame.gameengine.runner.SoloGameRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+
 public class SokobanMain {
     public static void main(String[] args) {
 
         // Json file tests should be in .config/ directory
-        String testName = "test1.json";
-        String pddlFileName = "p002";
+        String testName = "test3.json";
+        String pddlFileName = "p003_.pddl";
+        String planFileName = "plan.txt";
 
-       try {
+        try {
             ObjectMapper objectMapper = new ObjectMapper();
             File jsonFile = Paths.get(System.getProperty("user.dir"), "config", testName)
                     .toFile();
-            System.out.println(jsonFile.getPath());
+            //System.out.println(jsonFile.getPath());
             if (!jsonFile.exists()) {
                 System.err.println("Erreur : Le fichier JSON n'existe pas !");
                 return;
@@ -38,7 +39,7 @@ public class SokobanMain {
             StringBuilder init = new StringBuilder();
             StringBuilder goal = new StringBuilder();
             StringBuilder objects = new StringBuilder();
-            HashSet<String> positions =  new HashSet<>();
+            HashSet<String> positions = new HashSet<>();
 
             int height = lignes.length;
 
@@ -54,22 +55,99 @@ public class SokobanMain {
             // Ajout des adjacences
             StringBuilder adjacences = ParserJson.generateAdjacences(positions);
             init.append(adjacences);
-       
-            // create file
-            ParserJson.createPDDLFile(pddlFileName, init, goal,objects);
+
+            // Créer le fichier PDDL
+            ParserJson.createPDDLFile(pddlFileName, init, goal, objects);
 
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Erreur lors de la lecture du fichier JSON !");
         }
-         
+
+        // Chemins par défaut
+        String jarPath = "./pddl4j-4.0.0.jar"; // Modifier selon l'emplacement du JAR
+        String solverClass = "fr.uga.pddl4j.planners.statespace.HSP"; // HSP par défaut
+        String domainFile = "domain.pddl";
+        String problemFile = pddlFileName+".pddl";
+        int timeout = 60;
+
+        executeSolver(jarPath, solverClass, domainFile, problemFile, timeout);
+
+        // Generate plan
+
+        // Parse plan
+
+        String sequence = ParserPlan.parsePlan(planFileName);
+        System.out.println("sequence:" + sequence);
+        
+
         SoloGameRunner gameRunner = new SoloGameRunner();
         gameRunner.setAgent(Agent.class);
-        //gameRunner.setAgent("DUU");
+
+
         /* charger l'espace de jeu */
         gameRunner.setTestCase(testName);
 
         gameRunner.start(4200);
-                
+
+    }
+
+    private static void executeSolver(String jarPath, String solverClass, String domainFile, String problemFile,
+            int timeout) {
+        try {
+            // Construire la commande
+            ProcessBuilder processBuilder = new ProcessBuilder(
+                    "java", "-cp", jarPath, "-server", "-Xms2048m", "-Xmx2048m",
+                    solverClass, domainFile, problemFile, "-t", String.valueOf(timeout));
+
+            processBuilder.redirectErrorStream(true);
+            Process process = processBuilder.start();
+
+            // Lire la sortie du solveur
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
+            String line;
+            boolean planFound = false;
+
+            while ((line = reader.readLine()) != null) {
+               // System.out.println(line); // Affichage en direct
+                output.append(line).append("\n");
+
+                if (line.contains("found plan as follows:")) {
+                    planFound = true;
+                }
+            }
+
+            int exitCode = process.waitFor();
+            //System.out.println("Process exited with code: " + exitCode);
+
+            if (planFound) {
+                System.out.println("sol :"+output.toString());
+                String solution = ParserPlan.parsePlan(output.toString());
+                saveSolution(solution);
+                System.out.println("trouvé :"+solution);
+            } else {
+                System.out.println("No plan found or an error occurred.");
+            }
+
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void saveSolution(String output) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter("plan.txt"));
+            boolean capture = false;
+            writer.write("");
+
+            writer.write(output);
+
+            writer.close();
+           // System.out.println("Plan saved in plan.txt");
+        } catch (IOException e) {
+            System.err.println("Error writing plan file.");
+            e.printStackTrace();
+        }
     }
 }
