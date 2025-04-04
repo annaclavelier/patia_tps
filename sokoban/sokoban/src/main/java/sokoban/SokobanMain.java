@@ -13,10 +13,16 @@ public class SokobanMain {
     public static void main(String[] args) {
 
         // Json file tests should be in .config/ directory
-        String testName = "test3.json";
-        String pddlFileName = "p003_.pddl";
+        // Default test case
+        String testName = "test11.json";
+        String pddlFileName = "p0011.pddl";
         String planFileName = "plan.txt";
 
+        if (args.length > 0 ){
+            testName="test"+args[0]+".json";
+            pddlFileName = "p00"+args[0]+".pddl";
+        }
+        
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             File jsonFile = Paths.get(System.getProperty("user.dir"), "config", testName)
@@ -79,6 +85,7 @@ public class SokobanMain {
 
         String sequence = ParserPlan.parsePlan(planFileName);
         System.out.println("sequence:" + sequence);
+        
         
 
         SoloGameRunner gameRunner = new SoloGameRunner();

@@ -11,7 +11,7 @@ public class ParserJson {
 
     public static void createPDDLFile(String filename, StringBuilder init, StringBuilder goal,
             StringBuilder objects) {
-        String pddlContent = String.format("(define (problem %s)%n(:domain %s)%n", filename, ParserJson.DOMAIN) +
+        String pddlContent = String.format("(define (problem %s)%n(:domain %s)%n", filename.split(".pddl")[0], ParserJson.DOMAIN) +
                 "(:objects\n";
 
 
