@@ -46,8 +46,6 @@ public class ParserJson {
                 objects.append(position + " - position\n");
                 positions.add(position);
                 init.append(String.format("(box_at box_%d_%d %s)%n", x, y, position));
-                init.append("(isNotStorage ").append(position).append(")\n");
-                init.append(String.format("(box_not_on_storage box_%d_%d)%n", x, y));
                 goal.append(String.format("(box_on_storage box_%d_%d)%n", x, y));
                 break;
             // Destination
@@ -72,7 +70,6 @@ public class ParserJson {
                 objects.append(position + " - position\n");
                 positions.add(position);
                 init.append("(at ").append(position).append(")\n");
-                init.append("(isNotStorage ").append(position).append(")\n");
                 break;
             // Garde sur une place de stockage
             case '+':
@@ -86,7 +83,6 @@ public class ParserJson {
                 objects.append(position + " - position\n");
                 positions.add(position);
                 init.append("(empty ").append(position).append(")\n");
-                init.append("(isNotStorage ").append(position).append(")\n");
                 break;
             default:
                 System.out.println("Caractère inconnu : " + element);
