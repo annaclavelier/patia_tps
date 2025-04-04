@@ -34,7 +34,9 @@ public final class SATEncoding {
     private List<Integer> actionPreconditionList = new ArrayList<List<Integer>>();
     private List<Integer> actionEffectList = new ArrayList<List<Integer>>();
     private List<Integer> terminal_actions_List = new ArrayList<>();
-
+    private List<List<Integer>> action_implies_effects = new ArrayList<Integer>();
+    private List<Integer> intermediate_action_implies_precond= new ArrayList<Integer>();
+    private List<Integer> intermediate_action_implies_effect =new ArrayList<Integer>();
     /*
      * State transistions
      */
@@ -73,6 +75,8 @@ public final class SATEncoding {
         actionDisjunctionList = new ArrayList<>();
         actionEffectList = new ArrayList<>();
         actionPreconditionList = new ArrayList<>();
+
+        action_implies_effects = new ArrayList<ArrayList<Integer>>();
 
         this.steps = steps;
 
@@ -114,7 +118,9 @@ public final class SATEncoding {
         for (int i = 0; i < steps; i++) {
 
             for (int j = 0; j < listActions.size(); j++) {
-                
+                intermediate_action_implies_precond = new ArrayList<Integer>();
+                intermediate_action_implies_effect = new ArrayList<Integer>();
+
                 terminal_actions_List.add(pair(j+offset+1),i);
                 offset++;
 
@@ -129,16 +135,21 @@ public final class SATEncoding {
                 for (int k = 0; k < preconditions.size(); k++) {
                     // on s'intéresse seulement aux préconditions vraies
                     if (preconditions.getBit(k) == 1) {
-                        actionPreconditionList.add(pair(k + 1 + offset, i));
+                        int pairing = pair(k + 1 + offset, i);
+                        actionPreconditionList.add(pairing);
+                        intermediate_action_implies_precond.add(pairing);
                     }
                 }
+                intermediate_action_implies_precond.add(-terminal_actions_List.get(j+offset+1));
                 // Incrémenter offset
                 offset += preconditions.size();
 
                 // parcours effets positifs
                 for (int k = 0; k < positiveEffects.size(); k++) {
                     if (positiveEffects.getBit(k) == 1) {
-                        actionEffectList.add(pair(k + 1 + offset, i));
+                        int pairing = pair(k + 1 + offset, i+1);
+                        actionEffectList.add(pairing);
+                        intermediate_action_implies_effect.add(pairing);
                     }
                 }
                 // Incrémenter offset
@@ -147,12 +158,36 @@ public final class SATEncoding {
                 // parcours effets négatifs
                 for (int k = 0; k < negativeEffects.size(); k++) {
                     if (listNegEffects.getBit(k) == 1) {
-                        actionEffectList.add(-pair(k + 1 + offset, i));
+                        int pairing = pair(k + 1 + offset, i+1);
+                        actionEffectList.add(-pairing);
+                        intermediate_action_implies_effect.add(-pairing);
                     }
                 }
+                intermediate_action_implies_effect.add(- terminal_actions_List.get(j+offset+1));
                 // Incrémenter offset
                 offset += negativeEffects.size();
             }
+
+            //implication
+           intermediate_action_implies.add(intermediate_action_implies_precond);
+           intermediate_action_implies.add(intermediate_action_implies_effect);
+           //Alerte, you're stupid as f, you need to distribute the action to keep the conjunction.
+           //////////////////////////////////////////////////////////////////////////////////////
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// 
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// v
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// v
+           /// //////////////////////////////////////////////////////////////////////////////////////
+           /// v
 
         }
 
