@@ -17,10 +17,15 @@ public class SokobanMain {
         String testName = "test11.json";
         String pddlFileName = "p0011.pddl";
         String planFileName = "plan.txt";
+        // Default timeout
+        int timeout = 600;
 
         if (args.length > 0 ){
             testName="test"+args[0]+".json";
             pddlFileName = "p00"+args[0]+".pddl";
+            if (args.length > 1){
+                timeout = Integer.parseInt(args[1]);
+            }
         }
         
         try {
@@ -74,12 +79,11 @@ public class SokobanMain {
         String jarPath = "./pddl4j-4.0.0.jar"; // Modifier selon l'emplacement du JAR
         String solverClass = "fr.uga.pddl4j.planners.statespace.HSP"; // HSP par défaut
         String domainFile = "domain.pddl";
-        String problemFile = pddlFileName+".pddl";
-        int timeout = 60;
+        String problemFile = pddlFileName;
 
+        // Generate plan and parse plan
         executeSolver(jarPath, solverClass, domainFile, problemFile, timeout);
 
-        // Generate plan
 
         // Parse plan
 
@@ -106,6 +110,7 @@ public class SokobanMain {
             ProcessBuilder processBuilder = new ProcessBuilder(
                     "java", "-cp", jarPath, "-server", "-Xms2048m", "-Xmx2048m",
                     solverClass, domainFile, problemFile, "-t", String.valueOf(timeout));
+                    System.out.println("pbm file "+problemFile);
 
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
@@ -117,7 +122,7 @@ public class SokobanMain {
             boolean planFound = false;
 
             while ((line = reader.readLine()) != null) {
-               // System.out.println(line); // Affichage en direct
+               System.out.println(line); // Affichage en direct
                 output.append(line).append("\n");
 
                 if (line.contains("found plan as follows:")) {
