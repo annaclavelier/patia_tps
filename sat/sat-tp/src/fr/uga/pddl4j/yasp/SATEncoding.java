@@ -21,7 +21,7 @@ public final class SATEncoding {
     /*
      * A SAT problem in dimacs format is a list of int list a.k.a clauses
      */
-    private List<List<Integer>> initList = new ArrayList<List<Integer>>();
+    private List<Integer> initList = new ArrayList<Integer>();
 
     /*
      * Goal
@@ -31,8 +31,9 @@ public final class SATEncoding {
     /*
      * Actions
      */
-    private List<List<Integer>> actionPreconditionList = new ArrayList<List<Integer>>();
-    private List<List<Integer>> actionEffectList = new ArrayList<List<Integer>>();
+    private List<Integer> actionPreconditionList = new ArrayList<List<Integer>>();
+    private List<Integer> actionEffectList = new ArrayList<List<Integer>>();
+    private List<Integer> terminal_actions_List = new ArrayList<>();
 
     /*
      * State transistions
@@ -65,74 +66,117 @@ public final class SATEncoding {
 
     public SATEncoding(Problem problem, int steps) {
 
+        // initialize empty at first
+        initList = new ArrayList<>();
+        goalList = new ArrayList<>();
+
+        actionDisjunctionList = new ArrayList<>();
+        actionEffectList = new ArrayList<>();
+        actionPreconditionList = new ArrayList<>();
+
         this.steps = steps;
 
         // Encoding of init
         // Each fact is a unit clause
         // Init state step is 1
         // We get the initial state from the planning problem
-        // State is a bit vector where the ith bit at 1 corresponds to the ith fluent being true
+        // State is a bit vector where the ith bit at 1 corresponds to the ith fluent
+        // being true
         final int nb_fluents = problem.getFluents().size();
-        System.out.println(" fluents = " + nb_fluents );
+        System.out.println(" fluents = " + nb_fluents);
         final BitVector init = problem.getInitialState().getPositiveFluents();
 
         int offset = 0;
 
         // unit_clause ?
-        
+
         // TO BE DONE!
         // Construct init list
-        for(int i=0; i< init.size();i++){
-            if (init[i] == true){
+        int appariment;
+        for (int i = 0; i < init.size(); i++) {
+            if (init[i] == true) {
                 // unit clause
-                ArrayList<Integer> arrayList = new ArrayList<>();
-                arrayList.add(pair(i+1, 1));
+                appariment = pair(i + 1, 1);
                 // Add list to init list
-                this.initList.add(arrayList);
-            }else{
-                ArrayList<Integer> arrayList = new ArrayList<>();
-                arrayList.add(-pair(i+1, 1));
+                this.initList.add(appariment);
+            } else {
+                appariment = pair(i + 1, 1);
                 // Add list to init list ?
-                this.initList.add(arrayList);
+                this.initList.add(appariment);
             }
             offset++;
         }
 
         // Construct actions
         final List<Action> listActions = problem.getActions();
+        
 
-        for (int i=0; i<listActions.size(); i++){
-            List<Integer> preconditions = listActions[i].getPreconditions();
-            List<Integer> positiveEffects = listActions[i].getUnconditionalEffect().getPositiveFluents();
-            List<Integer> negativeEffects = listActions[i].getUnconditionalEffect().getNegativeFluents();
-            
-            actionPreconditionList.add(preconditions);
+        for (int i = 0; i < steps; i++) {
+
+            for (int j = 0; j < listActions.size(); j++) {
+                
+                terminal_actions_List.add(pair(j+offset+1),i);
+                offset++;
+
+                // ugoat nd bigbrainu
+                BitVector preconditions = listActions[j].getPreconditions().getPositiveFluents();
+                BitVector positiveEffects = listActions[j].getUnconditionalEffect().getPositiveFluents();
+                BitVector negativeEffects = listActions[j].getUnconditionalEffect().getNegativeFluents();
+
+
+                // parcours préconditions
+                // all precond positive
+                for (int k = 0; k < preconditions.size(); k++) {
+                    // on s'intéresse seulement aux préconditions vraies
+                    if (preconditions.getBit(k) == 1) {
+                        actionPreconditionList.add(pair(k + 1 + offset, i));
+                    }
+                }
+                // Incrémenter offset
+                offset += preconditions.size();
+
+                // parcours effets positifs
+                for (int k = 0; k < positiveEffects.size(); k++) {
+                    if (positiveEffects.getBit(k) == 1) {
+                        actionEffectList.add(pair(k + 1 + offset, i));
+                    }
+                }
+                // Incrémenter offset
+                offset += positiveEffects.size();
+
+                // parcours effets négatifs
+                for (int k = 0; k < negativeEffects.size(); k++) {
+                    if (listNegEffects.getBit(k) == 1) {
+                        actionEffectList.add(-pair(k + 1 + offset, i));
+                    }
+                }
+                // Incrémenter offset
+                offset += negativeEffects.size();
+            }
 
         }
 
-
         // Construct goal list
         final BitVector goal = problem.getGoal().getPositiveFluents();
-        for (int i=0; i< goal.size(); i++){
-            if (goal[i] == true){
+        for (int i = 0; i < goal.size(); i++) {
+            if (goal[i] == true) {
                 // unit clause
                 ArrayList<Integer> arrayList = new ArrayList<>();
-                arrayList.add(pair(i+offset+1, steps));
+                arrayList.add(pair(i + offset + 1, steps));
                 // Add list to init list
                 this.goalList.add(arrayList);
-            }else{
+            } else {
                 ArrayList<Integer> arrayList = new ArrayList<>();
-                arrayList.add(-pair(i+offset+1, steps));
+                arrayList.add(-pair(i + offset + 1, steps));
                 // Add list to init list ?
                 this.goalList.add(arrayList);
             }
         }
 
-
         // Makes DIMACS encoding from 1 to steps
-        encode(1, steps);
+        //encode(1, steps);
     }
-    
+
     /*
      * SAT encoding for next step
      */
@@ -147,7 +191,7 @@ public final class SATEncoding {
         String t = "[";
         String u = "";
         int tmp = 1;
-        int [] couple;
+        int[] couple;
         int bitnum;
         int step;
         for (Integer x : clause) {
@@ -156,8 +200,8 @@ public final class SATEncoding {
                 bitnum = couple[0];
                 step = couple[1];
             } else {
-                couple = unpair(- x);
-                bitnum = - couple[0];
+                couple = unpair(-x);
+                bitnum = -couple[0];
                 step = couple[1];
             }
             t = t + "(" + bitnum + ", " + step + ")";
@@ -169,7 +213,7 @@ public final class SATEncoding {
                 u = u + b + " >> ";
                 if (nb_fluents >= b) {
                     Fluent fluent = problem.getFluents().get(b - 1);
-                    u = u + problem.toString(fluent)  + "\n";
+                    u = u + problem.toString(fluent) + "\n";
                 } else {
                     u = u + problem.toShortString(problem.getActions().get(b - nb_fluents - 1)) + "\n";
                 }
@@ -200,12 +244,12 @@ public final class SATEncoding {
                 sequence.put(step, action);
             }
         }
-        for (int s = sequence.keySet().size(); s > 0 ; s--) {
+        for (int s = sequence.keySet().size(); s > 0; s--) {
             plan.add(0, sequence.get(s));
         }
         return plan;
     }
-    
+
     // Cantor paring function generates unique numbers
     private static int pair(int num, int step) {
         return (int) (0.5 * (num + step) * (num + step + 1) + step);
@@ -213,19 +257,20 @@ public final class SATEncoding {
 
     private static int[] unpair(int z) {
         /*
-        Cantor unpair function is the reverse of the pairing function. It takes a single input
-        and returns the two corespoding values.
-        */
+         * Cantor unpair function is the reverse of the pairing function. It takes a
+         * single input
+         * and returns the two corespoding values.
+         */
         int t = (int) (Math.floor((Math.sqrt(8 * z + 1) - 1) / 2));
         int bitnum = t * (t + 3) / 2 - z;
         int step = z - t * (t + 1) / 2;
-        return new int[]{bitnum, step}; //Returning an array containing the two numbers
+        return new int[] { bitnum, step }; // Returning an array containing the two numbers
     }
 
     private void encode(int from, int to) {
         // crée la formule définitive au solveur de l'étape from à l'étape to
         this.currentDimacs.clear();
-        
+
         // TO BE DONE!
 
         System.out.println("Encoding : successfully done (" + (this.currentDimacs.size()
