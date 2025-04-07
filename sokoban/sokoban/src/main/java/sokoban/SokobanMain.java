@@ -84,14 +84,6 @@ public class SokobanMain {
         // Generate plan and parse plan
         executeSolver(jarPath, solverClass, domainFile, problemFile, timeout);
 
-
-        // Parse plan
-
-        String sequence = ParserPlan.parsePlan(planFileName);
-        System.out.println("sequence:" + sequence);
-        
-        
-
         SoloGameRunner gameRunner = new SoloGameRunner();
         gameRunner.setAgent(Agent.class);
 
@@ -134,10 +126,10 @@ public class SokobanMain {
             //System.out.println("Process exited with code: " + exitCode);
 
             if (planFound) {
-                System.out.println("sol :"+output.toString());
+                System.out.println(output.toString());
                 String solution = ParserPlan.parsePlan(output.toString());
                 saveSolution(solution);
-                System.out.println("trouvé :"+solution);
+                System.out.println("sequence trouvée :"+solution);
             } else {
                 System.out.println("No plan found or an error occurred.");
             }
