@@ -9,6 +9,7 @@ import fr.uga.pddl4j.util.BitVector;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -35,8 +36,10 @@ public final class SATEncoding {
     private List<Integer> actionEffectList = new ArrayList<List<Integer>>();
     private List<Integer> terminal_actions_List = new ArrayList<>();
     private List<List<Integer>> action_implies_effects = new ArrayList<Integer>();
-    private List<Integer> intermediate_action_implies_precond= new ArrayList<Integer>();
-    private List<Integer> intermediate_action_implies_effect =new ArrayList<Integer>();
+    private List<List<Integer>> intermediate_action_implies_precond = new ArrayList<List<Integer>>();
+    private List<List<Integer>> intermediate_action_implies = new ArrayList<List<Integer>>();
+    private List<Integer> intermediate_action_implies_effect = new ArrayList<Integer>();
+
     /*
      * State transistions
      */
@@ -110,18 +113,20 @@ public final class SATEncoding {
             }
             offset++;
         }
+        // Add init list to current dimacs
+        currentDimacs.add(initList);
 
         // Construct actions
         final List<Action> listActions = problem.getActions();
-        
 
-        for (int i = 0; i < steps; i++) {
+        for (int step = 0; step < steps; step++) {
 
             for (int j = 0; j < listActions.size(); j++) {
                 intermediate_action_implies_precond = new ArrayList<Integer>();
                 intermediate_action_implies_effect = new ArrayList<Integer>();
 
-                terminal_actions_List.add(pair(j+offset+1),i);
+                int actionEncoding = pair((j + offset + 1), step);
+                terminal_actions_List.add(actionEncoding);
                 offset++;
 
                 // ugoat nd bigbrainu
@@ -129,27 +134,39 @@ public final class SATEncoding {
                 BitVector positiveEffects = listActions[j].getUnconditionalEffect().getPositiveFluents();
                 BitVector negativeEffects = listActions[j].getUnconditionalEffect().getNegativeFluents();
 
-
                 // parcours préconditions
                 // all precond positive
                 for (int k = 0; k < preconditions.size(); k++) {
                     // on s'intéresse seulement aux préconditions vraies
                     if (preconditions.getBit(k) == 1) {
-                        int pairing = pair(k + 1 + offset, i);
-                        actionPreconditionList.add(pairing);
-                        intermediate_action_implies_precond.add(pairing);
+                        int pairing = pair(k + 1 + offset, step);
+                        // actionPreconditionList.add(pairing);
+                        ArrayList<Integer> sub_construction_list = new ArrayList<>();
+                        sub_construction_list.add(-actionEncoding);
+                        sub_construction_list.add(pairing);
+                        intermediate_action_implies_precond.add(sub_construction_list);
                     }
                 }
-                intermediate_action_implies_precond.add(-terminal_actions_List.get(j+offset+1));
                 // Incrémenter offset
                 offset += preconditions.size();
 
                 // parcours effets positifs
                 for (int k = 0; k < positiveEffects.size(); k++) {
                     if (positiveEffects.getBit(k) == 1) {
-                        int pairing = pair(k + 1 + offset, i+1);
-                        actionEffectList.add(pairing);
-                        intermediate_action_implies_effect.add(pairing);
+                        int step_pairing = pair(k + 1 + offset, step);
+                        int pairing = pair(k + 1 + offset, step + 1);
+                        ArrayList<Integer> sub_construction_list = new ArrayList<>();
+                        sub_construction_list.add(-actionEncoding);
+                        sub_construction_list.add(pairing);
+                        intermediate_action_implies_effect.add(sub_construction_list);
+
+                        if (addList.containsKey(step_pairing)) {
+                            addList.get(step_pairing).add(actionEncoding);
+                        } else {
+                            addList.get(step_pairing).add(step_pairing);
+                            addList.get(step_pairing).add(-pairing);
+                            addList.put(step_pairing, Arrays.asList(actionEncoding));
+                        }
                     }
                 }
                 // Incrémenter offset
@@ -158,37 +175,77 @@ public final class SATEncoding {
                 // parcours effets négatifs
                 for (int k = 0; k < negativeEffects.size(); k++) {
                     if (listNegEffects.getBit(k) == 1) {
-                        int pairing = pair(k + 1 + offset, i+1);
-                        actionEffectList.add(-pairing);
-                        intermediate_action_implies_effect.add(-pairing);
+                        int pairing = pair(k + 1 + offset, step + 1);
+
+                        ArrayList<Integer> sub_construction_list = new ArrayList<>();
+                        sub_construction_list.add(-actionEncoding);
+                        sub_construction_list.add(-pairing);
+                        intermediate_action_implies_effect.add(sub_construction_list);
+
+                        // associer effet à liste d'actions
+                        if (addList.containsKey(step_pairing)) {
+                            delList.get(step_pairing).add(actionEncoding);
+                        } else {
+                            delList.get(step_pairing).add(step_pairing);
+                            delList.get(step_pairing).add(-pairing);
+                            delList.put(step_pairing, Arrays.asList(actionEncoding));
+                        }
                     }
                 }
-                intermediate_action_implies_effect.add(- terminal_actions_List.get(j+offset+1));
                 // Incrémenter offset
                 offset += negativeEffects.size();
             }
 
-            //implication
-           intermediate_action_implies.add(intermediate_action_implies_precond);
-           intermediate_action_implies.add(intermediate_action_implies_effect);
-           //Alerte, you're stupid as f, you need to distribute the action to keep the conjunction.
-           //////////////////////////////////////////////////////////////////////////////////////
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// 
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// v
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// v
-           /// //////////////////////////////////////////////////////////////////////////////////////
-           /// v
+            // implication
+            for (List<Integer> l : intermediate_action_implies_precond) {
+                intermediate_action_implies.add(l);
+            }
 
+            for (List<Integer> l : intermediate_action_implies_effect) {
+                intermediate_action_implies.add(l);
+            }
+
+            // Add the positive effects values to state transition
+            for (List<Integer> list : addList.values()) {
+                stateTransitionList.add(list);
+            }
+
+            // Add the negative effects values to state transition
+            for (List<Integer> list : delList.values()) {
+                stateTransitionList.add(list);
+            }
+
+            // Identify actions ??
+            // TODO
+
+            // Alerte, you're not stupid as f, you need to distribute the action to keep the
+            // conjunction.
+            //////////////////////////////////////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            ///
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// v
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// v
+            /// //////////////////////////////////////////////////////////////////////////////////////
+            /// v
+
+        }
+
+        // Add to currentDimacs
+        for (int i = 0; i < intermediate_action_implies.size(); i++) {
+            currentDimacs.add(intermediate_action_implies.get(i));
+        }
+
+        for (int i = 0; i < stateTransitionList.size(); i++) {
+            currentDimacs.add(stateTransitionList.get(i));
         }
 
         // Construct goal list
@@ -208,8 +265,10 @@ public final class SATEncoding {
             }
         }
 
+        currentDimacs.add(goalList);
+
         // Makes DIMACS encoding from 1 to steps
-        //encode(1, steps);
+        // encode(1, steps);
     }
 
     /*
