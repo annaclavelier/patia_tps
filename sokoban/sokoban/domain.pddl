@@ -22,7 +22,6 @@
 
 	)
 
-	;; TODO : vérifier que s et arrivee sont différentes
 	(:action pousser_caisse_ligne
 		:parameters (?b -box ?position_arrivee - position ?position_depart - position ?s - position)
 		:precondition (and (empty ?position_arrivee) (ligne ?s ?position_depart) (ligne ?position_arrivee ?position_depart) (at ?s) (box_at ?b ?position_depart))
@@ -37,11 +36,9 @@
 		)
 	)
 
-	;; TODO : vérifier que s et arrivee sont différentes
-
 	(:action pousser_caisse_colonne
 		:parameters (?b -box ?position_arrivee - position ?position_depart - position ?s - position)
-		:precondition (and (empty ?position_arrivee) (colonne ?s ?position_depart) (colonne ?position_arrivee ?position_depart) (at ?s) (box_at ?b ?position_depart))
+		:precondition (and (empty ?position_arrivee) (colonne ?s ?position_depart) (colonne ?position_arrivee ?position_depart) (at ?s) (box_at ?b ?position_depart) (not (= ?s ?position_arrivee)))
 		:effect (and
 			(not (empty ?position_arrivee))
 			(not (box_at ?b ?position_depart))
