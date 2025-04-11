@@ -16,7 +16,6 @@ from typing import Literal, List
 import argparse
 import math
 import time
-import heapq
 
 BFS = 'bfs'
 DFS = 'dfs'
@@ -43,30 +42,6 @@ def solve_bfs(open : List[Node]) -> Solution:
 
 def solve_dfs(open : List[Node]) -> Solution:
     '''Solve the puzzle using the DFS algorithm'''
-    '''
-    dimension = int(math.sqrt(len(open[0].get_state())))
-    moves = [UP, DOWN, LEFT, RIGHT]
-    while open:
-        node = open.pop(0)
-        if is_goal(node.get_state()):
-            return node.get_path()
-        puzzle = node.get_state()
-        k = node.cost
-        print('k = ', k)
-        children = get_children(puzzle, moves, dimension)
-        print("len children", len(children))
-        list_ = []
-        for child in children:
-            n = Node(state = child[0], move = child[1], parent = node, cost = k + 1)
-            # Ajouter à la tête de la liste
-            list_.append(n)
-        # print("list_", list_)
-        
-        open = list_ + open
-        
-            
-    return []
-    '''
     dimension = int(math.sqrt(len(open[0].get_state())))
     moves = [UP, DOWN, LEFT, RIGHT]
     while open:
@@ -120,7 +95,7 @@ def solve_astar(open : List[Node], close : List[Node]) -> Solution:
     return []
 
 def heuristic(node : Node) -> int:
-    '''Calculate the heuristic vaœlue of the puzzle'''
+    '''Calculate the heuristic value of the puzzle'''
     distance = 0
     state = node.get_state()
     for i,e in enumerate(state):
