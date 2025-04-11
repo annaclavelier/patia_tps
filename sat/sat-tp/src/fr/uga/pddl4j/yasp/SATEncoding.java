@@ -78,6 +78,7 @@ public final class SATEncoding {
         actionDisjunctionList = new ArrayList<>();
         actionEffectList = new ArrayList<>();
         actionPreconditionList = new ArrayList<>();
+        //TODO reinit other data structures
 
         action_implies_effects = new ArrayList<ArrayList<Integer>>();
 
