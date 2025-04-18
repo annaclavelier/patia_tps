@@ -34,11 +34,11 @@ public final class SATEncoding {
      */
     private List<Integer> actionPreconditionList = new ArrayList<>();
     private List<Integer> actionEffectList = new ArrayList<>();
-    private List<Integer> terminal_actions_List = new ArrayList<>();
-    private List<List<Integer>> action_implies_effects = new ArrayList<List<Integer>>();
-    private List<List<Integer>> intermediate_action_implies_precond = new ArrayList<List<Integer>>();
-    private List<List<Integer>> intermediate_action_implies = new ArrayList<List<Integer>>();
-    private List<List<Integer>> intermediate_action_implies_effect = new ArrayList<List<Integer>>();
+    private List<Integer> terminalActionsList = new ArrayList<>();
+    private List<List<Integer>> actionImpliesEffects = new ArrayList<List<Integer>>();
+    private List<List<Integer>> intermediateActionImpliesPrecond = new ArrayList<List<Integer>>();
+    private List<List<Integer>> intermediateActionImplies = new ArrayList<List<Integer>>();
+    private List<List<Integer>> intermediateActionImpliesEffect = new ArrayList<List<Integer>>();
 
     /*
      * State transistions
@@ -78,9 +78,10 @@ public final class SATEncoding {
         actionDisjunctionList = new ArrayList<>();
         actionEffectList = new ArrayList<>();
         actionPreconditionList = new ArrayList<>();
+        List<Fluent> listFluents = new ArrayList<>();
         //TODO reinit other data structures
 
-        action_implies_effects =new ArrayList<List<Integer>>();
+        actionImpliesEffects =new ArrayList<List<Integer>>();
 
         this.steps = steps;
 
@@ -94,15 +95,23 @@ public final class SATEncoding {
         System.out.println(" fluents = " + nb_fluents);
         final BitVector init = problem.getInitialState().getPositiveFluents();
 
-        int offset = 0;
+        // negativeFluents => fluents morts
+        // fluent vrai ou faux
+        for (int i = 0; i < nb_fluents; i++) {
+            System.out.println(problem.getFluents().get(i).toString());
+        }
 
+        problem.getInitialState().toString();
+        System.out.println("taille init "+init.size());
+
+        int offset = 0;
         // unit_clause ?
 
         // TO BE DONE!
         // Construct init list
         int appariment;
         for (int i = 0; i < init.size(); i++) {
-            if (init.get(i) == true) {
+            if (init.get(i)) {
                 // unit clause
                 appariment = pair(i + 1, 1);
                 // Add list to init list
@@ -110,24 +119,27 @@ public final class SATEncoding {
             } else {
                 appariment = pair(i + 1, 1);
                 // Add list to init list ?
-                this.initList.add(appariment);
+                this.initList.add(-appariment);
             }
             offset++;
         }
         // Add init list to current dimacs
         currentDimacs.add(initList);
 
+        System.out.println("taille initList : "+initList.size());
+
         // Construct actions
         final List<Action> listActions = problem.getActions();
+
 
         for (int step = 0; step < steps; step++) {
 
             for (int j = 0; j < listActions.size(); j++) {
-                intermediate_action_implies_precond = new ArrayList<List<Integer>>();
-                intermediate_action_implies_effect = new ArrayList<List<Integer>>();
+                intermediateActionImpliesPrecond = new ArrayList<List<Integer>>();
+                intermediateActionImpliesEffect = new ArrayList<List<Integer>>();
 
-                int actionEncoding = pair((j + offset + 1), step);
-                terminal_actions_List.add(actionEncoding);
+                int actionEncoding = pair((j + nb_fluents + 1), step);
+                terminalActionsList.add(actionEncoding);
                 offset++;
 
                 // ugoat nd bigbrainu
@@ -139,13 +151,13 @@ public final class SATEncoding {
                 // all precond positive
                 for (int k = 0; k < preconditions.size(); k++) {
                     // on s'intéresse seulement aux préconditions vraies
-                    if (preconditions.get(k) == true) {
+                    if (preconditions.get(k)) {
                         int pairing = pair(k + 1 + offset, step);
                         // actionPreconditionList.add(pairing);
                         ArrayList<Integer> sub_construction_list = new ArrayList<>();
                         sub_construction_list.add(-actionEncoding);
                         sub_construction_list.add(pairing);
-                        intermediate_action_implies_precond.add(sub_construction_list);
+                        intermediateActionImpliesPrecond.add(sub_construction_list);
                     }
                 }
                 // Incrémenter offset
@@ -153,21 +165,24 @@ public final class SATEncoding {
 
                 // parcours effets positifs
                 for (int k = 0; k < positiveEffects.size(); k++) {
-                    if (positiveEffects.get(k) == true) {
+                    if (positiveEffects.get(k)) {
                         int step_pairing = pair(k + 1 + offset, step);
                         int pairing = pair(k + 1 + offset, step + 1);
                         ArrayList<Integer> sub_construction_list = new ArrayList<>();
                         sub_construction_list.add(-actionEncoding);
                         sub_construction_list.add(pairing);
-                        intermediate_action_implies_effect.add(sub_construction_list);
+                        intermediateActionImpliesEffect.add(sub_construction_list);
 
                         if (addList.containsKey(step_pairing)) {
                             addList.get(step_pairing).add(actionEncoding);
                         } else {
-                            addList.get(step_pairing).add(step_pairing);
-                            addList.get(step_pairing).add(-pairing);
-                            addList.put(step_pairing, Arrays.asList(actionEncoding));
+                            List<Integer> disjonction = new ArrayList<>();
+                            disjonction.add(step_pairing);
+                            disjonction.add(-pairing);     
+                            disjonction.add(actionEncoding);
+                            addList.put(step_pairing,disjonction);
                         }
+
                     }
                 }
                 // Incrémenter offset
@@ -175,23 +190,25 @@ public final class SATEncoding {
 
                 // parcours effets négatifs
                 for (int k = 0; k < negativeEffects.size(); k++) {
-                    if (negativeEffects.get(k) == true) {
-                        int step_pairing = pair(k + 1 + offset, step);
+                    if (negativeEffects.get(k)) {
+                        int stepPairing = pair(k + 1 + offset, step);
                         int pairing = pair(k + 1 + offset, step + 1);
 
-                        ArrayList<Integer> sub_construction_list = new ArrayList<>();
-                        sub_construction_list.add(-actionEncoding);
-                        sub_construction_list.add(-pairing);
-                        intermediate_action_implies_effect.add(sub_construction_list);
+                        ArrayList<Integer> subConstructionList = new ArrayList<>();
+                        subConstructionList.add(-actionEncoding);
+                        subConstructionList.add(-pairing);
+                        intermediateActionImpliesEffect.add(subConstructionList);
 
-                        // associer effet à liste d'actions
-                        if (addList.containsKey(step_pairing)) {
-                            delList.get(step_pairing).add(actionEncoding);
+                        if (delList.containsKey(stepPairing)) {
+                            delList.get(stepPairing).add(actionEncoding);
                         } else {
-                            delList.get(step_pairing).add(step_pairing);
-                            delList.get(step_pairing).add(-pairing);
-                            delList.put(step_pairing, Arrays.asList(actionEncoding));
+                            List<Integer> disjonction = new ArrayList<>();
+                            disjonction.add(stepPairing);
+                            disjonction.add(-pairing);     
+                            disjonction.add(actionEncoding);
+                            delList.put(stepPairing,disjonction);
                         }
+                        
                     }
                 }
                 // Incrémenter offset
@@ -199,12 +216,12 @@ public final class SATEncoding {
             }
 
             // implication
-            for (List<Integer> l : intermediate_action_implies_precond) {
-                intermediate_action_implies.add(l);
+            for (List<Integer> l : intermediateActionImpliesPrecond) {
+                intermediateActionImplies.add(l);
             }
 
-            for (List<Integer> l : intermediate_action_implies_effect) {
-                intermediate_action_implies.add(l);
+            for (List<Integer> l : intermediateActionImpliesEffect) {
+                intermediateActionImplies.add(l);
             }
 
             // Add the positive effects values to state transition
@@ -217,13 +234,11 @@ public final class SATEncoding {
                 stateTransitionList.add(list);
             }
 
-        
-
         }
 
         // Add to currentDimacs
-        for (int i = 0; i < intermediate_action_implies.size(); i++) {
-            currentDimacs.add(intermediate_action_implies.get(i));
+        for (int i = 0; i < intermediateActionImplies.size(); i++) {
+            currentDimacs.add(intermediateActionImplies.get(i));
         }
 
         for (int i = 0; i < stateTransitionList.size(); i++) {
@@ -233,7 +248,7 @@ public final class SATEncoding {
         // Construct goal list
         final BitVector goal = problem.getGoal().getPositiveFluents();
         for (int i = 0; i < goal.size(); i++) {
-            if (goal.get(i) == true) {
+            if (goal.get(i)) {
                 // unit clause
                 ArrayList<Integer> arrayList = new ArrayList<>();
                 arrayList.add(pair(i + offset + 1, steps));
@@ -248,7 +263,17 @@ public final class SATEncoding {
         }
 
         currentDimacs.add(goalList);
-        //return currentDimacs;
+
+        addList.clear();
+        delList.clear();
+        initList.clear();
+        goalList.clear();
+        stateTransitionList.clear();
+        intermediateActionImplies.clear();
+        intermediateActionImpliesEffect.clear();
+        intermediateActionImpliesPrecond.clear();
+        terminalActionsList.clear();
+
 
         // Makes DIMACS encoding from 1 to steps
         // encode(1, steps);
