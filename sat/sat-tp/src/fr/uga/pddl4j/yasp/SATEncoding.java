@@ -32,13 +32,13 @@ public final class SATEncoding {
     /*
      * Actions
      */
-    private List<Integer> actionPreconditionList = new ArrayList<List<Integer>>();
-    private List<Integer> actionEffectList = new ArrayList<List<Integer>>();
+    private List<Integer> actionPreconditionList = new ArrayList<>();
+    private List<Integer> actionEffectList = new ArrayList<>();
     private List<Integer> terminal_actions_List = new ArrayList<>();
-    private List<List<Integer>> action_implies_effects = new ArrayList<Integer>();
+    private List<List<Integer>> action_implies_effects = new ArrayList<List<Integer>>();
     private List<List<Integer>> intermediate_action_implies_precond = new ArrayList<List<Integer>>();
     private List<List<Integer>> intermediate_action_implies = new ArrayList<List<Integer>>();
-    private List<Integer> intermediate_action_implies_effect = new ArrayList<Integer>();
+    private List<List<Integer>> intermediate_action_implies_effect = new ArrayList<List<Integer>>();
 
     /*
      * State transistions
@@ -80,7 +80,7 @@ public final class SATEncoding {
         actionPreconditionList = new ArrayList<>();
         //TODO reinit other data structures
 
-        action_implies_effects = new ArrayList<ArrayList<Integer>>();
+        action_implies_effects =new ArrayList<List<Integer>>();
 
         this.steps = steps;
 
@@ -102,7 +102,7 @@ public final class SATEncoding {
         // Construct init list
         int appariment;
         for (int i = 0; i < init.size(); i++) {
-            if (init[i] == true) {
+            if (init.get(i) == true) {
                 // unit clause
                 appariment = pair(i + 1, 1);
                 // Add list to init list
@@ -123,23 +123,23 @@ public final class SATEncoding {
         for (int step = 0; step < steps; step++) {
 
             for (int j = 0; j < listActions.size(); j++) {
-                intermediate_action_implies_precond = new ArrayList<Integer>();
-                intermediate_action_implies_effect = new ArrayList<Integer>();
+                intermediate_action_implies_precond = new ArrayList<List<Integer>>();
+                intermediate_action_implies_effect = new ArrayList<List<Integer>>();
 
                 int actionEncoding = pair((j + offset + 1), step);
                 terminal_actions_List.add(actionEncoding);
                 offset++;
 
                 // ugoat nd bigbrainu
-                BitVector preconditions = listActions[j].getPreconditions().getPositiveFluents();
-                BitVector positiveEffects = listActions[j].getUnconditionalEffect().getPositiveFluents();
-                BitVector negativeEffects = listActions[j].getUnconditionalEffect().getNegativeFluents();
+                BitVector preconditions = listActions.get(j).getPrecondition().getPositiveFluents();
+                BitVector positiveEffects = listActions.get(j).getUnconditionalEffect().getPositiveFluents();
+                BitVector negativeEffects = listActions.get(j).getUnconditionalEffect().getNegativeFluents();
 
                 // parcours préconditions
                 // all precond positive
                 for (int k = 0; k < preconditions.size(); k++) {
                     // on s'intéresse seulement aux préconditions vraies
-                    if (preconditions.getBit(k) == 1) {
+                    if (preconditions.get(k) == true) {
                         int pairing = pair(k + 1 + offset, step);
                         // actionPreconditionList.add(pairing);
                         ArrayList<Integer> sub_construction_list = new ArrayList<>();
@@ -153,7 +153,7 @@ public final class SATEncoding {
 
                 // parcours effets positifs
                 for (int k = 0; k < positiveEffects.size(); k++) {
-                    if (positiveEffects.getBit(k) == 1) {
+                    if (positiveEffects.get(k) == true) {
                         int step_pairing = pair(k + 1 + offset, step);
                         int pairing = pair(k + 1 + offset, step + 1);
                         ArrayList<Integer> sub_construction_list = new ArrayList<>();
@@ -175,7 +175,8 @@ public final class SATEncoding {
 
                 // parcours effets négatifs
                 for (int k = 0; k < negativeEffects.size(); k++) {
-                    if (listNegEffects.getBit(k) == 1) {
+                    if (negativeEffects.get(k) == true) {
+                        int step_pairing = pair(k + 1 + offset, step);
                         int pairing = pair(k + 1 + offset, step + 1);
 
                         ArrayList<Integer> sub_construction_list = new ArrayList<>();
@@ -216,27 +217,7 @@ public final class SATEncoding {
                 stateTransitionList.add(list);
             }
 
-            // Identify actions ??
-            // TODO
-
-            // Alerte, you're not stupid as f, you need to distribute the action to keep the
-            // conjunction.
-            //////////////////////////////////////////////////////////////////////////////////////
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            ///
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// v
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// v
-            /// //////////////////////////////////////////////////////////////////////////////////////
-            /// v
+        
 
         }
 
@@ -252,21 +233,22 @@ public final class SATEncoding {
         // Construct goal list
         final BitVector goal = problem.getGoal().getPositiveFluents();
         for (int i = 0; i < goal.size(); i++) {
-            if (goal[i] == true) {
+            if (goal.get(i) == true) {
                 // unit clause
                 ArrayList<Integer> arrayList = new ArrayList<>();
                 arrayList.add(pair(i + offset + 1, steps));
                 // Add list to init list
-                this.goalList.add(arrayList);
+                this.goalList.addAll(arrayList);
             } else {
                 ArrayList<Integer> arrayList = new ArrayList<>();
                 arrayList.add(-pair(i + offset + 1, steps));
                 // Add list to init list ?
-                this.goalList.add(arrayList);
+                this.goalList.addAll(arrayList);
             }
         }
 
         currentDimacs.add(goalList);
+        //return currentDimacs;
 
         // Makes DIMACS encoding from 1 to steps
         // encode(1, steps);
