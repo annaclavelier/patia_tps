@@ -27,16 +27,23 @@ def solve_bfs(open : List[Node]) -> Solution:
     '''Solve the puzzle using the BFS algorithm (breadth-first-search)'''
     dimension = int(math.sqrt(len(open[0].get_state())))
     moves = [UP, DOWN, LEFT, RIGHT]
+    explored = set()
+    
     while open:
         node = open.pop(0)
         if is_goal(node.get_state()):
             return node.get_path()
+        state = tuple(node.get_state())
+        # on explore pas si déjà visité
+        if state in explored:
+            continue
+        explored.add(state)
         puzzle = node.get_state()
         k = node.cost
-        #print('k = ', k)
+        print('k = ', k)
         children = get_children(puzzle, moves, dimension)
         for child in children:
-            n = Node(state = child[0], move = child[1], parent = node, cost = k + 1)
+            n = Node(state=child[0], move=child[1], parent=node, cost=k + 1)
             open.append(n)
     return []
 
@@ -44,13 +51,20 @@ def solve_dfs(open : List[Node]) -> Solution:
     '''Solve the puzzle using the DFS algorithm'''
     dimension = int(math.sqrt(len(open[0].get_state())))
     moves = [UP, DOWN, LEFT, RIGHT]
+    explored = set()
+    
     while open:
         node = open.pop()
+        state = tuple(node.get_state())
         if is_goal(node.get_state()):
             return node.get_path()
+        # on explore pas si déjà visité
+        if state in explored:
+            continue
+        explored.add(state)
         puzzle = node.get_state()
         k = node.cost
-        # print('k = ', k)
+        print('k = ', k)
 
         children = get_children(puzzle, moves, dimension)
         for child in children:
@@ -96,15 +110,17 @@ def solve_astar(open : List[Node], close : List[Node]) -> Solution:
 
 def heuristic(node : Node) -> int:
     '''Calculate the heuristic value of the puzzle'''
+    puzzle = node.get_state()
+    dimension = int(math.sqrt(len(puzzle)))
     distance = 0
-    state = node.get_state()
-    for i,e in enumerate(state):
-        (i_x, i_y) = divmod(i, math.sqrt(len(state)))
-        (e_x, e_y) = divmod(e,math.sqrt(len(state)))
-        dist = abs(e_x-i_x) + abs(e_y - i_y)
-        distance += dist
-    
-    # distance manhattan
+    for i in range(len(puzzle)):
+        if puzzle[i] != 0:
+            x = i // dimension
+            y = i % dimension
+            goal_index = puzzle[i]
+            goal_x = goal_index // dimension
+            goal_y = goal_index % dimension
+            distance += abs(x - goal_x) + abs(y - goal_y)
     return distance
 
 def main():
