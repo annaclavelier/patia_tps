@@ -53,7 +53,7 @@ public class ParserJson {
                 objects.append(position + " - position\n");
                 positions.add(position);
                 init.append("(empty ").append(position).append(")\n");
-                init.append("(isStorage ").append(position).append(")\n");
+                init.append("(is_storage ").append(position).append(")\n");
                 break;
             // Boite sur une destination
             case '*':
@@ -61,7 +61,7 @@ public class ParserJson {
                 positions.add(position);
                 objects.append(String.format("box_%d_%d - box%n", x, y));
                 init.append(String.format("(box_at box_%d_%d %s)%n", x, y, position));
-                init.append("(isStorage ").append(position).append(")\n");
+                init.append("(is_storage ").append(position).append(")\n");
                 init.append(String.format("(box_on_storage box_%d_%d)%n", x, y));
                 goal.append(String.format("(box_on_storage box_%d_%d)%n", x, y));
                 break;
@@ -76,7 +76,7 @@ public class ParserJson {
                 objects.append(position + " - position\n");
                 positions.add(position);
                 init.append("(at ").append(position).append(")\n");
-                init.append("(isStorage ").append(position).append(")\n");
+                init.append("(is_storage ").append(position).append(")\n");
                 break;
             // Sol
             case ' ':

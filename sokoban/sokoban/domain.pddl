@@ -1,18 +1,18 @@
 (define (domain sokoban)
-	(:requirements :strips :typing)
+	(:requirements :strips :typing :equality)
 	(:types
 		box 
 		position
 	)
 	(:predicates
-		;;; la case x est à la position p 
+		;;; la boite b est à la position p 
 		(box_at ?b - box ?p - position)
 		;;; la position est vide
 		(empty ?p - position)
 		;;; le sokoban est à la position p
 		(at ?p - position)
 		;;; la case est une case de stockage
-		(isStorage ?p -position)
+		(is_storage ?p -position)
 		;;; la boite est sur une case de stockage
 		(box_on_storage ?b - box)
 		;; les positions p et p2 sont adjacentes en ligne
@@ -77,7 +77,7 @@
 
 	(:action verifier_etat
 		:parameters (?p - position ?b - box)
-		:precondition (and (box_at ?b ?p)(isStorage ?p))
+		:precondition (and (box_at ?b ?p)(is_storage ?p))
 		:effect (and (box_on_storage ?b) )
 	)
 	
