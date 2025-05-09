@@ -14,9 +14,12 @@ java --add-opens java.base/java.lang=ALL-UNNAMED \
       -cp "$(mvn dependency:build-classpath -Dmdep.outputFile=/dev/stdout -q):target/test-classes/:target/classes" \
       sokoban.SokobanMain N TIMEOUT
 ```
+
+Une fois la résolution terminée normalement vous pourrez consulter l'app web sur **localhost:4200**.
+
 ## Implémentation
 
-On récupère le cas de test demandé JSON, puis on le parse avec `ParserJson` grâce à la classe et on construit le fichier PDDL associé avec son état initial et ses objets.
+On récupère le cas de test demandé JSON, puis on le parse grâce à la classe `ParserJson` et on construit le fichier PDDL associé avec son état initial et ses objets.
 
 On lance ensuite le script pddl4j en donnant le fichier PDDL généré (avec le domaine PDDL,etc).
 On vient récupérer la sortie du script et récupérer les actions.
