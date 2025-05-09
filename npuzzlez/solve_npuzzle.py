@@ -110,14 +110,14 @@ def heuristic(node : Node) -> int:
     puzzle = node.get_state()
     dimension = int(math.sqrt(len(puzzle)))
     distance = 0
-    for i in range(len(puzzle)):
-        if puzzle[i] != 0:
-            x = i // dimension
-            y = i % dimension
-            goal_index = puzzle[i]
-            goal_x = goal_index // dimension
-            goal_y = goal_index % dimension
-            distance += abs(x - goal_x) + abs(y - goal_y)
+    for i, e in enumerate(state):
+        # Ignore empty case
+        if e != 0:
+            i_x, i_y = divmod(i, dimension)
+            e_x, e_y = divmod(e, dimension)
+            # distance Manhattan
+            distance += abs(e_x - i_x) + abs(e_y - i_y)
+
     return distance
 
 def main():

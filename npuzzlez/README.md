@@ -10,7 +10,7 @@ Le détail est dans le fichier generate_custom_npuzzle qui s'inspire largement d
 Les puzzles générés sont stockés dans le dossier `puzzlez`.
 
 ```
-python generate_npuzzle.py
+python generate_custom_npuzzle.py
 ```
 
 2. Créer le fichier CSV 
