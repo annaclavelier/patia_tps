@@ -8,7 +8,6 @@ import com.codingame.gameengine.runner.SoloGameRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 public class SokobanMain {
     public static void main(String[] args) {
 
@@ -20,19 +19,19 @@ public class SokobanMain {
         // Default timeout
         int timeout = 600;
 
-        if (args.length > 0 ){
-            testName="test"+args[0]+".json";
-            pddlFileName = "p00"+args[0]+".pddl";
-            if (args.length > 1){
+        if (args.length > 0) {
+            testName = "test" + args[0] + ".json";
+            pddlFileName = "p00" + args[0] + ".pddl";
+            if (args.length > 1) {
                 timeout = Integer.parseInt(args[1]);
             }
         }
-        
+
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             File jsonFile = Paths.get(System.getProperty("user.dir"), "config", testName)
                     .toFile();
-            //System.out.println(jsonFile.getPath());
+            // System.out.println(jsonFile.getPath());
             if (!jsonFile.exists()) {
                 System.err.println("Erreur : Le fichier JSON n'existe pas !");
                 return;
@@ -87,7 +86,6 @@ public class SokobanMain {
         SoloGameRunner gameRunner = new SoloGameRunner();
         gameRunner.setAgent(Agent.class);
 
-
         /* charger l'espace de jeu */
         gameRunner.setTestCase(testName);
 
@@ -102,7 +100,7 @@ public class SokobanMain {
             ProcessBuilder processBuilder = new ProcessBuilder(
                     "java", "-cp", jarPath, "-server", "-Xms2048m", "-Xmx2048m",
                     solverClass, domainFile, problemFile, "-t", String.valueOf(timeout));
-                    System.out.println("pbm file "+problemFile);
+            System.out.println("pbm file " + problemFile);
 
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
@@ -114,7 +112,7 @@ public class SokobanMain {
             boolean planFound = false;
 
             while ((line = reader.readLine()) != null) {
-               System.out.println(line); // Affichage en direct
+                System.out.println(line); // Affichage en direct
                 output.append(line).append("\n");
 
                 if (line.contains("found plan as follows:")) {
@@ -123,13 +121,13 @@ public class SokobanMain {
             }
 
             int exitCode = process.waitFor();
-            //System.out.println("Process exited with code: " + exitCode);
+            // System.out.println("Process exited with code: " + exitCode);
 
             if (planFound) {
                 System.out.println(output.toString());
                 String solution = ParserPlan.parsePlan(output.toString());
                 saveSolution(solution);
-                System.out.println("sequence trouvée :"+solution);
+                System.out.println("sequence trouvée :" + solution);
             } else {
                 System.out.println("No plan found or an error occurred.");
             }
@@ -148,7 +146,7 @@ public class SokobanMain {
             writer.write(output);
 
             writer.close();
-           // System.out.println("Plan saved in plan.txt");
+            // System.out.println("Plan saved in plan.txt");
         } catch (IOException e) {
             System.err.println("Error writing plan file.");
             e.printStackTrace();
