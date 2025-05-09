@@ -34,7 +34,7 @@ def solve_bfs(open : List[Node]) -> Solution:
         if is_goal(node.get_state()):
             return node.get_path()
         state = tuple(node.get_state())
-        # on explore pas si déjà visité
+        # do not visit node if already explored
         if state in explored:
             continue
         explored.add(state)
@@ -58,7 +58,7 @@ def solve_dfs(open : List[Node]) -> Solution:
         state = tuple(node.get_state())
         if is_goal(node.get_state()):
             return node.get_path()
-        # on explore pas si déjà visité
+        # do not visit node if already explored
         if state in explored:
             continue
         explored.add(state)
@@ -69,16 +69,13 @@ def solve_dfs(open : List[Node]) -> Solution:
         children = get_children(puzzle, moves, dimension)
         for child in children:
             n = Node(state = child[0], move = child[1], parent = node, cost = k + 1)
-            # Ajouter à la tête de la liste
+            # Add at the head of the list
             open.insert(0,n)
             
     return []
 
 def solve_astar(open : List[Node], close : List[Node]) -> Solution:
     '''Solve the puzzle using the A* algorithm'''
-    # tq open pas vide
-    # premier noeud celui qui minimise la fonction heuristique
-    # get_path -> chemin vers la racine
     dimension = int(math.sqrt(len(open[0].get_state())))
     moves = [UP, DOWN, LEFT, RIGHT]
     while open:
@@ -98,11 +95,11 @@ def solve_astar(open : List[Node], close : List[Node]) -> Solution:
         for child in children:
             n = Node(state = child[0], move = child[1], parent = node, cost = k+1)
             n.heuristic = heuristic(node)
-            # vérifier que n n'est pas dans close ou open
+            # Check n is not in close or open
             if n not in close or n not in open:
                 open.append(n)
                 
-            # trier liste
+            # Sorting list
             open.sort(key =lambda x: x.cost + x.heuristic )
         
         
