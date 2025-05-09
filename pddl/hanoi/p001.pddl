@@ -2,7 +2,8 @@
 (define (problem hanoi-3-3)
     (:domain hanoi)
     (:objects
-        b a c - disk s1 s2 s3 -stack
+        b a c - disk
+        s1 s2 s3 -stack
     )
     (:init
 
@@ -10,9 +11,9 @@
         (ontable c s1)
         (on b c s1)
         (on a b s1)
-        (is_on a  s1)
-        (is_on b  s1)
-        (is_on c  s1)
+        (is_on a s1)
+        (is_on b s1)
+        (is_on c s1)
         (emptystack s2)
         (emptystack s3)
         (handempty)
