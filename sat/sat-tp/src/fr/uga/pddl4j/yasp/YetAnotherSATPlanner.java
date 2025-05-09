@@ -1,8 +1,6 @@
 package fr.uga.pddl4j.yasp;
 
 import fr.uga.pddl4j.heuristics.state.FastForward;
-import fr.uga.pddl4j.problem.operator.Action;
-
 import fr.uga.pddl4j.parser.DefaultParsedProblem;
 import fr.uga.pddl4j.parser.ErrorManager;
 import fr.uga.pddl4j.parser.Message;
@@ -16,11 +14,8 @@ import fr.uga.pddl4j.plan.Plan;
 
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
-import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.IProblem;
 import org.sat4j.specs.ISolver;
-import org.sat4j.specs.IVecInt;
-import org.sat4j.specs.TimeoutException;
 
 import java.io.FileNotFoundException;
 import java.util.Arrays;
@@ -41,7 +36,7 @@ public class YetAnotherSATPlanner extends AbstractStateSpacePlanner {
      * @param args the command line arguments.
      */
 
-    static final int MAXSTEPS = 3;
+    static final int MAXSTEPS = 50;
     // SAT solver max number of var
     static final int MAXVAR = 1000000;
     // SAT solver max number of clauses
@@ -49,7 +44,7 @@ public class YetAnotherSATPlanner extends AbstractStateSpacePlanner {
     // SAT solver timeout
     static final int TIMEOUT = 3600;
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     /**
      * Instantiates the planning problem from a parsed problem.
@@ -79,6 +74,7 @@ public class YetAnotherSATPlanner extends AbstractStateSpacePlanner {
         // Compute a heuristic lower bound for plan steps
         final FastForward ff = new FastForward(problem);
         final int hlb = ff.estimate(new State(problem.getInitialState()), problem.getGoal());
+
         if (hlb > MAXSTEPS) {
             System.out.println("Problem has no solution in " + MAXSTEPS + " steps!");
             System.out.println("At least " + hlb + " steps are necessary.");
@@ -86,7 +82,8 @@ public class YetAnotherSATPlanner extends AbstractStateSpacePlanner {
         } else {
 
             // Intial number of steps of the SAT encoding
-            int steps = hlb;
+            // hlb does not work at all
+            int steps = 2;
 
             // Create the SAT encoding
             SATEncoding sat = new SATEncoding(problem, steps);
@@ -101,49 +98,42 @@ public class YetAnotherSATPlanner extends AbstractStateSpacePlanner {
 
             // Seach starts here!
             boolean doSearch = true;
-
+            
             while (doSearch && !(steps > stepmax)) {
-                System.out.println(steps);
-                for(List<Integer> clause : sat.currentDimacs){
-                    if(!clause.isEmpty()){
-                        System.out.println(clause.toString());
-                    }
-                    
+                for(List<Integer> clause : sat.getDimacs()){
                     try{
+                        // add clauses to solver from satEncoding
                         int[] array = clause.stream().mapToInt(Integer::intValue).toArray();
                         solver.addClause(new VecInt(array));
                     }
                     catch(Exception e){
-                        System.out.println("coucou");
-                        System.out.println(e.getMessage());
+                        System.out.println("Trying to add an empty clause!");
                     }
                 }
                 try {
-                if(solver.isSatisfiable()){
-                    int[] model = ip.model();
-                    List<Integer> model_prime = Arrays.stream(model)
-                           .boxed()
-                           .collect(Collectors.toList());
-                    plan = sat.extractPlan(model_prime, problem);
-                    doSearch = false;
-                }
-                steps++;
-                sat = new SATEncoding(problem, steps);
+                    if(solver.isSatisfiable()){
+                        System.out.println("Solution found:");
+                        // if exists a solution - get model
+                        int[] model = ip.model();
+                        List<Integer> model_prime = Arrays.stream(model)
+                            .boxed()
+                            .collect(Collectors.toList());
+                        // convert to plan & stop search
+                        plan = sat.extractPlan(model_prime, problem);
+                        doSearch = false;
+                    }
+                    else{
+                        // else continue increasing the number of steps
+                        steps++;
+                        sat = new SATEncoding(problem, steps);
+                    }
                 }
                 catch (Exception e) {
-                    System.out.println("bonjour");
-
-                    System.out.println(e.getMessage());
+                    doSearch = false;
+                    e.printStackTrace();
                 }
+        
             }
-        }
-        System.out.println("Plan:");
-        if(plan.isEmpty()){
-            System.out.println("vide");
-        }
-        for (Action action : plan.actions()) {
-            System.out.println(action.toString());
-            
         }
         return plan;
     }
@@ -189,8 +179,7 @@ public class YetAnotherSATPlanner extends AbstractStateSpacePlanner {
                     
                     Plan plan = planner.solve(problem);
                         
-                        if (plan != null && !plan.isEmpty()) {
-                            System.out.println("plan");
+                        if (plan != null) {
                             System.out.println(problem.toString(plan));
                         } else {
                             System.out.println("No solution found!");
