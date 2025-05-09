@@ -7,7 +7,7 @@ def main():
     # Different sizes of npuzzle
     sizes = [3,5,7,9,11,13,15,17]
     # Maxlengths
-    lengths = [1,3,5,10,15, 20, 28, 35, 40, 45]
+    lengths = [20, 50, 100, 200, 400, 800]
     # Number of instances of same configuration (size, maxlength)
     number = 3
     
