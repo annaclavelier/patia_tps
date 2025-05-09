@@ -40,7 +40,7 @@ def solve_bfs(open : List[Node]) -> Solution:
         explored.add(state)
         puzzle = node.get_state()
         k = node.cost
-        print('k = ', k)
+        #print('k = ', k)
         children = get_children(puzzle, moves, dimension)
         for child in children:
             n = Node(state=child[0], move=child[1], parent=node, cost=k + 1)
@@ -64,7 +64,7 @@ def solve_dfs(open : List[Node]) -> Solution:
         explored.add(state)
         puzzle = node.get_state()
         k = node.cost
-        print('k = ', k)
+        #print('k = ', k)
 
         children = get_children(puzzle, moves, dimension)
         for child in children:
@@ -89,7 +89,7 @@ def solve_astar(open : List[Node], close : List[Node]) -> Solution:
             return node.get_path()
 
         k = node.cost
-        print('k = ', k)
+        #print('k = ', k)
 
         puzzle = node.get_state()
        

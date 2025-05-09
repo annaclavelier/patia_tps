@@ -41,7 +41,7 @@ def shuffle(state : State) -> State:
 
 def create_goal(dimension : int) -> State:
     '''Create the goal state of the puzzle'''
-    print(dimension)
+    #print(dimension)
     return [i for i in range(0, dimension * dimension)]
 
 
