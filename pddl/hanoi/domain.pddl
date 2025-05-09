@@ -1,35 +1,35 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; 4 Op-blocks world on hanoi
+;;; Hanoi towers
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (domain blocks)
+(define (domain hanoi)
 	(:requirements :strips :typing)
 	(:types
-		block
-		stack
+		disk ;;; anneau/disque
+		stack ;;; pile
 	)
-	;;;; on block x est sur le block y
 	(:predicates
-		(on ?x - block ?y - block ?z -stack)
-		;;;; le block x est sur la table (pas sur un autre block)
-		(ontable ?x - block ?z -stack)
-		;;; x n'a pas de block au dessus
-		(clear ?x - block)
+		;;;; le disque x est sur le disque y sur la pile z
+		(on ?x - disk ?y - disk ?z -stack)
+		;;;; le disque x est sur la table (pas sur un autre disque)
+		(ontable ?x - disk ?z -stack)
+		;;; x n'a pas de disque au dessus
+		(clear ?x - disk)
 		;;; main -> vide 
 		(handempty)
-		;;; on tient le block x
-		(holding ?x - block)
+		;;; on tient le disque x
+		(holding ?x - disk)
 		;;; x est moins gros que y
-		(inferior ?x -block ?y -block)
+		(inferior ?x -disk ?y -disk)
 		;;; pile est vide
 		(emptystack ?z - stack)
-		;;; appartient à
-		(is_on ?x - block  ?z - stack )
+		;;; disque x sur la pile z
+		(is_on ?x - disk  ?z - stack )
 	)
 
-	;;; je prends un cube sur la table
+	;;; je prends un disque sur la table
 	(:action pick-up
-		:parameters (?x - block ?z - stack)
+		:parameters (?x - disk ?z - stack)
 		:precondition (and (clear ?x) (ontable ?x ?z) (handempty))
 		:effect (and (not (ontable ?x ?z))
 			(not (clear ?x))
@@ -40,7 +40,7 @@
 	)
 	;;; on met sur la table
 	(:action put-down
-		:parameters (?x - block ?z - stack)
+		:parameters (?x - disk ?z - stack)
 		:precondition (and (holding ?x) (emptystack ?z))
 		:effect (and (not (holding ?x))
 			(clear ?x)
@@ -51,7 +51,7 @@
 	)
 	;;; empile x sur y
 	(:action stack
-		:parameters (?x - block ?y - block ?z - stack)
+		:parameters (?x - disk ?y - disk ?z - stack)
 		:precondition (and (holding ?x) (clear ?y) (inferior ?x ?y)(is_on ?y  ?z ))
 		:effect (and (not (holding ?x))
 			(not (clear ?y))
@@ -62,7 +62,7 @@
 	)
 	;;; dépile x sur y, donc x dans la main
 	(:action unstack
-		:parameters (?x - block ?y - block ?z - stack)
+		:parameters (?x - disk ?y - disk ?z - stack)
 		:precondition (and (on ?x ?y ?z) (clear ?x) (handempty)(is_on ?x  ?z ))
 		:effect (and (holding ?x)
 			(clear ?y)
