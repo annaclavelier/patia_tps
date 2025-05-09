@@ -1,4 +1,4 @@
-(define (problem taquin-5x5-1)
+(define (problem taquin-5x5)
     (:domain taquin)
     (:objects
         tile1 tile2 tile3 tile4 tile5 tile6 tile7 tile8 tile9 tile10 tile11 tile12 tile13 tile14 tile15 tile16 tile17 tile18 tile19 tile20 tile21 tile22 tile23 tile24 - tile
